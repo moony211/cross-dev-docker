@@ -6,7 +6,7 @@
 # - targetfs는 별도 볼륨으로 마운트 (이미지에 포함하지 않음)
 # ============================================================================
 
-FROM docker-reg.posod.com:5000/jetpack-cross-no-targetfs-6.1:v0.1
+FROM docker-reg.posod.com:5000/jetpack-cross-dev:v0.1
 
 ENV PATH="/opt/Qt-host/Tools/qtcreator-15.0.1/bin:${PATH}"
 
