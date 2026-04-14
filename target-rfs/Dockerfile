@@ -1,9 +1,12 @@
-# 1. 이미 rootfs가 포함된 베이스 이미지 사용
-FROM docker-reg.posod.com:5000/deepstream7.1-arm:v0.2
+# 1. 가장 가벼운 베이스 선택
+FROM scratch
 
-# 2. 추가 패키지(업데이트분)만 복사
-ADD libdlib_dev_arm.tar.gz /l4t/targetfs/
+# 2. 압축 파일을 복사하며 해제
+# 만약 tar 내부에 'Qt/' 폴더가 바로 있다면 아래 경로가 맞습니다.
+ADD jetson_orin_nx_rfs_1.tar.gz /l4t/
 
-# 3. 기존 볼륨 및 커맨드 유지
+# 3. 중요: 이 경로를 다른 컨테이너가 '볼륨'으로 인식하도록 선언
 VOLUME ["/l4t/targetfs"]
+
+# 4. 'docker create' 에러 방지를 위한 더미 명령
 CMD ["/"]
