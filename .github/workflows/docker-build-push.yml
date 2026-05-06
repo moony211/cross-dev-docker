@@ -1,10 +1,19 @@
 name: Docker Build and Push
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "jetpack-cross-dev/VERSION"
+      - "qt-host/6.7.3/VERSION"
+      - "qt-host/6.8.3/VERSION"
+      - "qt-target/6.7.3/VERSION"
+      - "qt-target/6.8.3/VERSION"
+      - "target-rfs/VERSION"
   workflow_dispatch:
     inputs:
       image-tag:
-        description: "Image tag to apply to built images"
+        description: "Default image tag (if VERSION file is missing)"
         required: false
         default: "latest"
 
@@ -18,10 +27,23 @@ jobs:
       - name: Build and push images
         run: |
           chmod +x scripts/build-and-push-images.sh
-          IMAGE_TAG="${{ github.event.inputs.image-tag }}"
-          ./scripts/build-and-push-images.sh
+          
+          TARGETS=""
+          if [ "${{ github.event_name }}" == "push" ]; then
+            # Get the list of changed VERSION files and extract their directories
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep 'VERSION$' || true)
+            if [ -n "$CHANGED_FILES" ]; then
+              for file in $CHANGED_FILES; do
+                TARGETS="$TARGETS $(dirname $file)"
+              done
+            fi
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            export IMAGE_TAG="${{ github.event.inputs.image-tag }}"
+          fi
+
+          echo "Target directories to build: $TARGETS"
+          ./scripts/build-and-push-images.sh $TARGETS
         env:
           REGISTRY_HOST: docker-reg.posod.com:5000
-          IMAGE_TAG: ${{ github.event.inputs.image-tag }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
