@@ -1,0 +1,27 @@
+name: Docker Build and Push
+
+on:
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        description: "Image tag to apply to built images"
+        required: false
+        default: "latest"
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and push images
+        run: |
+          chmod +x scripts/build-and-push-images.sh
+          IMAGE_TAG="${{ github.event.inputs.image-tag }}"
+          ./scripts/build-and-push-images.sh
+        env:
+          REGISTRY_HOST: docker-reg.posod.com:5000
+          IMAGE_TAG: ${{ github.event.inputs.image-tag }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
