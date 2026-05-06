@@ -23,6 +23,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # Git diff를 위해 모든 커밋 히스토리를 가져옵니다. (fatal: bad object 에러 해결)
+          fetch-depth: 0        
+
+      - name: Set up Docker Buildx
+        run: |
+          # BuildKit이 HTTP 기반의 사설 레지스트리를 허용하도록 설정 파일을 생성합니다.
+          cat <<EOF > buildkitd.toml
+          [registry."docker-reg.posod.com:5000"]
+            http = true
+          [registry."192.168.15.67:5000"]
+            http = true
+          EOF
+
+          # 기존 빌더가 있으면 사용하고, 없으면 새로 생성합니다.
+          docker buildx create --use --name mybuilder --config buildkitd.toml --driver-opt network=host || docker buildx use mybuilder
+          
+          # 빌더를 초기화하여 설정을 적용합니다.
+          docker buildx inspect --bootstrap
 
       - name: Build and push images
         run: |
