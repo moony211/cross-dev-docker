@@ -72,6 +72,17 @@ for entry in "${targets_to_build[@]}"; do
     image="${REGISTRY_HOST}/${repo}:${IMAGE_TAG}"
   fi
 
+  echo "Target image: ${image}"
+  
+  # Check if image already exists in registry to avoid redundant builds
+  if [[ "${dry_run}" == false ]]; then
+    if docker manifest inspect "${image}" > /dev/null 2>&1; then
+      echo "Image ${image} already exists in registry. Skipping build (to force rebuild, update VERSION or delete image from registry)."
+      echo
+      continue
+    fi
+  fi
+
   echo "Building ${image} from ${path}/Dockerfile (Tag: ${current_tag})"
   run docker build --pull -f "${path}/Dockerfile" -t "${image}" "${path}"
   echo "Pushing ${image}"
