@@ -76,7 +76,7 @@ for entry in "${targets_to_build[@]}"; do
   
   # Check if image already exists in registry to avoid redundant builds
   if [[ "${dry_run}" == false ]]; then
-    if docker manifest inspect "${image}" > /dev/null 2>&1; then
+    if DOCKER_CLI_EXPERIMENTAL=enabled docker manifest inspect --insecure "${image}" > /dev/null 2>&1; then
       echo "Image ${image} already exists in registry. Skipping build (to force rebuild, update VERSION or delete image from registry)."
       echo
       continue
